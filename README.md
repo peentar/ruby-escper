@@ -5,7 +5,7 @@ Installation
 ------------
 
     gem install escper
-    
+
 Introduction
 ------------
 
@@ -25,7 +25,7 @@ Usecase: Convert image to ESCPOS code
 Load Escper:
 
     require 'escper'
-    
+
 The source of the image can be a file:
 
     escpos_code = Escper::Img.new('/path/to/test.png', :file).to_s
@@ -33,7 +33,7 @@ The source of the image can be a file:
 The source of the image can also be data which is uploaded via a HTML form. Here, the variable `data` is a variable containing the image data of a multipart HTML form. The following code would work in Ruby on Rails:
 
     escpos_code = Escper::Img.new(data.read, :blob).to_s
-    
+
 Alternatively, the image source can also be a dynamically created ImageMagick canvas:
 
     canvas = Magick::Image.new(512, 128)
@@ -55,8 +55,8 @@ For optimal visual results, when using a file or a blob, the image should previo
 To print an image directly on a thermal receipt printer, in just one line:
 
     File.open('/dev/usb/lp0','w') { |f| f.write Escper::Img.new('/path/to/image.png', :file).to_s }
-    
-    
+
+
 Usecase: Print UTF-8 text to several printers at the same time
 ------------
 
@@ -65,64 +65,64 @@ First, in Ruby, create objects of the class named `VendorPrinter` which are simp
     vp1 = Escper::VendorPrinter.new :id => 1, :name => 'Printer 1 USB', :path => '/dev/usb/lp0', :copies => 1
     vp2 = Escper::VendorPrinter.new :id => 2, :name => 'Printer 2 RS232', :path => '/dev/ttyUSB0', :copies => 1
     vp3 = Escper::VendorPrinter.new :id => 3, :name => 'Printer 3 TCP/IP', :path => '192.168.0.201:9100', :copies => 1
-    
+
 `id` must be unique integers which will be needed later during printing. `name` is an arbitrary string which is only used for logging. `path` is the path to a regular file, serial device node or `IP:port` of the thermal printer (with a colon). Device nodes can be of the type USB, serial port (RS232) or TCP/IP. `copies` are the number of duplications of pages that the printer should print. Optionally, you can pass in the key `codepage` which is a number that must correspond to one of the YAML keys in the file `codepages.yml`. By making the `codepage` a parameter of the printer model, it is possible to use several different printers from different manufacturers with different character sets at the same time. `baudrate` is an optional integer to set the speed of the transmission (the default is 9600, this setting is only effective when using RS232 communication).
 
 Next, initialize the printing engine of Escper by passing it an array of the VendorPrinter instances. It is also possible to pass a single VendorPrinter instance instead of an Array. As mentioned earlier, you also can pass instances or Arrays of instances of a class that is named differently (e.g. ActiveRecord queries), as longs as it responds to the afore mentioned attributes:
 
     print_engine = Escper::Printer.new 'local', [vp1, vp2, vp3]
-    
+
 Now, open all device nodes as specified in `new`:
 
     print_engine.open
-    
+
 After this, you can finally print text and images. Text must be UTF-8 encoded. The fist parameter is the `id` of the printer object that should be printed to. The second parameter is the actual text:
 
     print_engine.print 1, 'print text to printer 1'
     print_engine.print 2, 'print text to printer 2'
     print_engine.print 3, 'print text to printer 3'
-    
+
 The `print` method will return an array which contains the number of bytes actually written to the device node, as well as the raw text that was written to the device node.
 
 After printing is finished, don't forget to close the device nodes which were openened during the `open` call:
 
     print_engine.close
 
-    
+
 Usecase: Print UTF-8 text mixed with binary images
 ------------
 
 Create a printer object:
 
     vp1 = Escper::VendorPrinter.new :id => 1, :name => 'Printer 1 USB', :path => '/dev/usb/lp0', :copies => 1
-    
+
 Render images into ESCPOS code, stored in variables:
 
     image_escpos1 = Escper::Img.new('/path/to/test1.png', :file).to_s
     image_escpos2 = Escper::Img.new('/path/to/test2.png', :file).to_s
-    
+
 This raw image data now must be stored in a hash, whith a unique key that gives the image a unique name. This is necessary so that the image code will not be distorted by the codepage transformation.
 
     raw_images = {:image1 => image_escpos1, :image2 => image_escpos2}
-    
+
 Initialize the print engine:
 
     print_engine = Escper::Printer.new 'local', vp1
-    
+
 Open the printer device nodes:
 
     print_engine.open
-    
+
 Print text and image at the same time:
 
     print_engine.print 1, "print text and image1 {::escper}image1{:/} and image 2 {::escper}image1{:/} to printer 1", raw_images
-    
+
 Note that the special tag `{::escper}image_key{:/}` will be replaced with the image that is stored in the hash `raw_images` with the key `image_key`.
 
 After printing is done, close the device nodes again:
 
     print_engine.close
-    
+
 
 Fallback mode
 ----------------------
@@ -143,7 +143,7 @@ You can configure Escper by calling in your project:
 `codepage_file` specifies the path to `codepages.yml`. (for an explanation see above). If not specified, the file `codepages.yml` that is part of this gem distribution will be used.
 
 `use_safe_device_path` can be set to `true` for security reasons when you are running Escper on a remote server and no actual writes to physical printers should occur. In this case, all print data will always be stored in regular files in the path `safe_device_path` with safe/escaped file names, which can be further processed or served by other programs.
-    
+
 Additional Features
 ----------------------
 
@@ -162,40 +162,3 @@ and
 [SALOR Hospitality](https://github.com/michaelfranzl/SalorHospitality)
 
 and indirectly used by dozens of real stores daily, around the clock, around the world.
-
-
-Contact
-----------------------
-
-Ask for support or additional features!
-
-Red (E) Tools Ltd.
-
-office@thebigrede.net
-
-www.thebigrede.net
-
-
-Licence
-----------------------
-
-Copyright (C) 2011-2013  Red (E) Tools Ltd. <office@thebigrede.net>
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be included
-in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
